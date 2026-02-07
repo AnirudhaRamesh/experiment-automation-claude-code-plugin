@@ -3,7 +3,5 @@
   "version": "1.0.0",
   "description": "Iterative AIChor experiment automation with auto-diagnosis, fix, and retry",
   "author": { "name": "Anirudha Ramesh" },
-  "keywords": ["aichor", "experiments", "automation", "mlops"],
-  "agents": "./agents/",
-  "skills": "./skills/"
+  "keywords": ["aichor", "experiments", "automation", "mlops"]
 }

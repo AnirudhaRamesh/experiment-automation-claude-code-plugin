@@ -4,23 +4,19 @@ Iterative AIChor experiment automation with auto-diagnosis, fix, and retry.
 
 ## Installation
 
-### From the marketplace
-
-```
-/plugin marketplace add AnirudhaRamesh/experiment-automation-claude-code-plugin
-/plugin install aichor-experiment-automation@instadeep-plugins
-```
-
-### From GitHub directly
-
-```
-/plugin install --source github --repo AnirudhaRamesh/experiment-automation-claude-code-plugin
-```
-
-### Local development
+Clone the repo and point Claude Code at it:
 
 ```bash
-claude --plugin-dir /path/to/this/repo
+git clone https://github.com/AnirudhaRamesh/experiment-automation-claude-code-plugin.git
+claude --plugin-dir /path/to/experiment-automation-claude-code-plugin
+```
+
+To load it every session, add to your `.claude/settings.local.json`:
+
+```json
+{
+  "pluginDirs": ["/path/to/experiment-automation-claude-code-plugin"]
+}
 ```
 
 After installing, run `/setup` to configure your name, Slack channels, and Notion database.
