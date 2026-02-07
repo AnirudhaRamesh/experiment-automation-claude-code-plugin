@@ -4,22 +4,23 @@ Iterative AIChor experiment automation with auto-diagnosis, fix, and retry.
 
 ## Installation
 
-Clone the repo and point Claude Code at it:
+1. Clone the plugin repo anywhere on your machine:
 
 ```bash
-git clone https://github.com/AnirudhaRamesh/experiment-automation-claude-code-plugin.git
-claude --plugin-dir /path/to/experiment-automation-claude-code-plugin
+git clone https://github.com/AnirudhaRamesh/experiment-automation-claude-code-plugin.git ~/plugins/experiment-automation
 ```
 
-To load it every session, add to your `.claude/settings.local.json`:
+2. In your **project repo** (e.g. melqart), add the plugin path to `.claude/settings.local.json`:
 
 ```json
 {
-  "pluginDirs": ["/path/to/experiment-automation-claude-code-plugin"]
+  "pluginDirs": ["/absolute/path/to/experiment-automation-claude-code-plugin"]
 }
 ```
 
-After installing, run `/setup` to configure your name, Slack channels, and Notion database.
+3. Run `claude` from your project root (where `.claude/settings.local.json` is configured) so permissions and plugins apply automatically.
+
+4. Run `/setup` to configure your name, Slack channels, and Notion database.
 
 ## Prerequisites
 
