@@ -1,0 +1,9 @@
+{
+  "author_name": "Your Name",
+  "slack_channels": [
+    { "id": "CHANNEL_ID", "name": "#your-channel" }
+  ],
+  "notion_database": "collection://YOUR-NOTION-DATABASE-ID",
+  "default_budget_usd": 10,
+  "default_max_retries": 5
+}
