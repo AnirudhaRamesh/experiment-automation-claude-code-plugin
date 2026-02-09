@@ -84,7 +84,7 @@ Shows all loops with their status, iteration count, and branch. Quick way to see
 
 Resumes a stopped or failed loop. Detects which phase it died at (implement, launch, monitor, fix) and continues from there. Useful after laptop sleep or network interruption.
 
-### `/check-experiment` — Pre-flight check
+### `/verify-experimental-setup` — Pre-flight check
 
 Validates `manifest.yaml`, shows uncommitted changes, and summarizes what will run. Run this before launching to catch config issues early.
 

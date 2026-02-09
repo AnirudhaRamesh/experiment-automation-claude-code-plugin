@@ -1,5 +1,5 @@
 ---
-name: check-experiment
+name: verify-experimental-setup
 description: Quick health check of experiment configuration before launching
 user_invocable: true
 model: haiku
