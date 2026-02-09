@@ -1,0 +1,14 @@
+{
+  "name": "local-experiment-automation",
+  "owner": {
+    "name": "Anirudha Ramesh"
+  },
+  "plugins": [
+    {
+      "name": "aichor-experiment-automation",
+      "source": "./",
+      "description": "Iterative AIChor experiment automation with auto-diagnosis, fix, and retry",
+      "version": "1.0.0"
+    }
+  ]
+}

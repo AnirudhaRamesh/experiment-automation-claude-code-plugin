@@ -11,7 +11,8 @@ Monitor the latest AIChor experiment.
 
 Locate `monitor-experiment.sh` by searching in order:
 1. `.claude/scripts/monitor-experiment.sh` in the repo root (`git rev-parse --show-toplevel`)
-2. If not found, search `~/.claude/plugins/**/scripts/monitor-experiment.sh`
+2. If not found, search for `scripts/monitor-experiment.sh` relative to this skill file's directory (i.e., two levels up from the SKILL.md: `<plugin-root>/scripts/monitor-experiment.sh`)
+3. If not found, search `~/.claude/plugins/**/scripts/monitor-experiment.sh`
 
 Store the discovered path as `MONITOR_SCRIPT`.
 

@@ -29,7 +29,8 @@ Ask the user:
 
 Locate `experiment-loop.sh` by searching in order:
 1. `.claude/scripts/experiment-loop.sh` in the repo root (`git rev-parse --show-toplevel`)
-2. If not found, search `~/.claude/plugins/**/scripts/experiment-loop.sh`
+2. If not found, search for `scripts/experiment-loop.sh` relative to this skill file's directory (i.e., two levels up from the SKILL.md: `<plugin-root>/scripts/experiment-loop.sh`)
+3. If not found, search `~/.claude/plugins/**/scripts/experiment-loop.sh`
 
 Store the discovered path as `LOOP_SCRIPT`.
 
