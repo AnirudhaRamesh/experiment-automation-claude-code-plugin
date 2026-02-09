@@ -5,7 +5,7 @@ user_invocable: true
 model: haiku
 ---
 
-Show the status of all experiment loops.
+Show the status of recent experiment loops.
 
 ## What to do
 
@@ -13,9 +13,11 @@ Show the status of all experiment loops.
 
 List all directories under `.claude/loop-state/` in the repo root (`git rev-parse --show-toplevel`). Each directory is a loop. If the directory doesn't exist or is empty, tell the user there are no experiment loops.
 
+Sort directories by modification time (most recent first) and **show only the 10 most recent by default**. If there are more than 10, add a note at the bottom: `Showing 10 most recent of <total> loops. Ask for "all loops" to see the full list.` If the user explicitly asks for all loops or more than 10, show the full list.
+
 ### 2. Read each loop's state
 
-For each loop directory, read `state.json` and extract:
+For each loop directory (limited to the selected set), read `state.json` and extract:
 - `loop_id`
 - `status` (running, succeeded, failed_max_retries, failed_unrecoverable, needs_human, implementing, cancelled)
 - `current_iteration` and `max_retries`
