@@ -383,6 +383,19 @@ loop_id, plan_temp, plan_file, base_branch, wt_path, wt_branch, max_retries, sta
 with open(plan_temp) as f:
     plan_content = f.read()
 
+# Extract heading: markdown heading first, then first non-empty line
+experiment_name = None
+first_line = None
+for line in plan_content.split('\n'):
+    line = line.strip()
+    if line.startswith('# '):
+        experiment_name = line.lstrip('# ').strip()
+        break
+    elif first_line is None and line:
+        first_line = line
+if experiment_name is None and first_line:
+    experiment_name = first_line
+
 state = {
     "loop_id": loop_id,
     "plan": plan_content,
@@ -393,7 +406,7 @@ state = {
     "max_retries": int(max_retries),
     "current_iteration": 0,
     "status": "running",
-    "experiment_name": None,
+    "experiment_name": experiment_name,
     "notion_page_id": None,
     "notion_log_page_id": None,
     "iterations": []
@@ -520,45 +533,50 @@ while true; do
             add_iteration "$CURRENT_ITERATION"
         fi
 
-        log "LAUNCH [iter $CURRENT_ITERATION]: Committing and pushing..."
+        log "LAUNCH [iter $CURRENT_ITERATION]: Launching via aichor-experiment-launcher agent..."
 
-        # Build commit message — derived from plan (iter 1) or fixer summary (retries)
-        # AIChor rules: subject <=72 chars, no body, no special chars (= () ` : —)
-        COMMIT_MSG=""
-        if [[ $CURRENT_ITERATION -eq 1 ]]; then
-            # First iteration: extract first heading from plan
-            COMMIT_MSG=$(python3 -c "
-import json, re
-with open('$STATE_FILE') as f:
-    plan = json.load(f)['plan']
-for line in plan.split('\n'):
-    line = line.strip()
-    if line.startswith('# '):
-        print(line.lstrip('# ').strip()[:67]); break
-else:
-    print('Experiment iteration 1')
-" 2>/dev/null || echo "Experiment iteration 1")
-        else
-            # Retry: include fixer summary for context
-            FIXER_SUMMARY=$(get_iteration_field "$((CURRENT_ITERATION - 1))" "fixer_summary" 2>/dev/null || echo "")
-            if [[ -n "$FIXER_SUMMARY" && "$FIXER_SUMMARY" != "None" ]]; then
-                COMMIT_MSG=$(echo "$FIXER_SUMMARY" | cut -c1-67)
-            else
-                COMMIT_MSG="Retry iteration $CURRENT_ITERATION"
-            fi
+        # Build suggested commit message from experiment_name in state + (iter-N)
+        PLAN_HEADING=$(read_state_field "experiment_name")
+
+        # Strip any existing iter-N suffix to avoid accumulation on retries
+        PLAN_HEADING=$(echo "$PLAN_HEADING" | sed 's/ iter-[0-9]*$//')
+
+        COMMIT_MSG_HINT=""
+        if [[ -n "$PLAN_HEADING" && "$PLAN_HEADING" != "None" && "$PLAN_HEADING" != "null" ]]; then
+            SUFFIX=" iter-$CURRENT_ITERATION"
+            MAX_HEADING_LEN=$((67 - ${#SUFFIX}))
+            SANITIZED=$(echo "$PLAN_HEADING" | tr -d '=()`' | tr ':—' '- ' | tr -s ' ' | sed 's/^ //;s/ $//')
+            COMMIT_MSG_HINT="${SANITIZED:0:$MAX_HEADING_LEN}$SUFFIX"
+            COMMIT_MSG_HINT="Suggested commit message: $COMMIT_MSG_HINT"
         fi
 
-        # Sanitize: strip special chars that cause AIChor to silently fail, then truncate
-        COMMIT_MSG=$(echo "$COMMIT_MSG" | tr -d '=()`' | tr ':—' '- ' | tr -s ' ' | sed 's/^ //;s/ $//' | cut -c1-67)
+        # Read the plan for context
+        PLAN_TEXT=$(python3 -c "
+import json
+with open('$STATE_FILE') as f:
+    print(json.load(f)['plan'])
+" 2>/dev/null || echo "(could not read plan)")
 
-        # Stage, commit, push — mechanical, no LLM needed
-        (
-            cd "$WORKTREE_PATH" \
-            && git add -A \
-            && git commit -m "EXP: $COMMIT_MSG" \
-            && git push origin "$(git branch --show-current)" 2>&1
-        ) || {
-            log "LAUNCH [iter $CURRENT_ITERATION]: ERROR: git commit+push failed"
+        # Random backoff (5-30s) to avoid rate limits with parallel loops
+        BACKOFF=$((RANDOM % 26 + 5))
+        log "LAUNCH [iter $CURRENT_ITERATION]: Backoff ${BACKOFF}s before launching agent..."
+        sleep "$BACKOFF"
+
+        LAUNCHER_OUTPUT=$(cd "$WORKTREE_PATH" && claude -p \
+            --agent aichor-experiment-launcher \
+            --dangerously-skip-permissions \
+            --allowedTools "Glob Grep Read Edit Write Bash" \
+            --max-budget-usd "$BUDGET" \
+            "Launch this experiment on AIChor. You are in the worktree directory already.
+
+Plan:
+$PLAN_TEXT
+
+$COMMIT_MSG_HINT
+
+This is iteration $CURRENT_ITERATION of the experiment loop." 2>&1) || {
+            log "LAUNCH [iter $CURRENT_ITERATION]: ERROR: launcher agent failed"
+            log "LAUNCH [iter $CURRENT_ITERATION]: Output: $LAUNCHER_OUTPUT"
             exit_loop "failed_unrecoverable" 1
         }
 
