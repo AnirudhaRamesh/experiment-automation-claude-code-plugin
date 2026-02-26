@@ -51,12 +51,12 @@ Loop: `<loop_id>` | Branch: `<branch>` | Max retries: <max_retries>
 ### Concise format (default)
 
 ```
-*<experiment_name>* (`<loop_id>`) | Iter <n>/<max> | *<status>* | `<short_commit>`
+*<experiment_name>* (`<loop_id>`) | Iter <n>/<max> | *<status>* | `<short_commit>` | <url|AIChor Run>
 ```
 
 Example:
 ```
-*Moonbeam full routing with segment phase off* (`exp-loop-20260206-132237`) | Iter 2/5 | *Fix applied* | `a3f1b2c`
+*Moonbeam full routing with segment phase off* (`exp-loop-20260206-132237`) | Iter 2/5 | *Fix applied* | `a3f1b2c` | <https://instadeep.aichor.ai/projects/c1cefc35-db2b-4778-a8d5-16a1dee01fe9/experiments/abc-123?view=logs|AIChor Run>
 ```
 
 ### Detailed format
@@ -66,11 +66,24 @@ Example:
 Loop: `<loop_id>` | Branch: `<branch>`
 Iteration: <n>/<max> | Status: *<status>*
 Commit: `<hash>`
+AIChor: <url|View Run>
 
 <context-dependent details — e.g., fixer summary, error snippet, success metrics>
 ```
 
 The `loop_id` MUST always appear in both formats — it's the key to finding the worktree and state files on disk.
+
+### AIChor run link
+
+When an `experiment_id` (UUID) is available in the state file's iteration data, include a clickable link to the AIChor dashboard:
+
+```
+https://instadeep.aichor.ai/projects/<project_id>/experiments/<experiment_id>?view=logs
+```
+
+The `project_id` is `c1cefc35-db2b-4778-a8d5-16a1dee01fe9` (Melqart). Include the link in both concise and detailed formats — in concise, append it at the end; in detailed, add it as its own line. Use Slack link formatting: `<url|AIChor Run>`.
+
+If `experiment_id` is missing or null, omit the link.
 
 ## Status Labels
 
@@ -91,6 +104,6 @@ Map internal statuses to readable labels:
 3. ALWAYS include both `experiment_name` and `loop_id` — the name is human-readable, the loop_id maps to the worktree/state directory
 4. Keep concise messages to a single line
 5. For detailed messages, include the fixer_summary or analysis summary from the latest iteration
-6. Do NOT include raw UUIDs for experiment_id — use the experiment name instead
+6. Do NOT include raw UUIDs as text — use the experiment_id only to construct the AIChor dashboard link
 7. Truncate any field that would make the message excessively long (> 300 chars)
 8. Always include the iteration count as `n/max` (e.g., `2/5`)
