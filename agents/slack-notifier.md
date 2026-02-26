@@ -38,6 +38,16 @@ Use the **experiment name** — the descriptive part of the `EXP: ` commit messa
 
 If `experiment_name` is missing, fall back to the `loop_id`.
 
+### Loop start format (for `loop_start` action)
+
+```
+:rocket: *New experiment loop started*
+*<experiment_name>*
+Loop: `<loop_id>` | Branch: `<branch>` | Max retries: <max_retries>
+
+<first 2-3 lines of the plan, or a brief summary>
+```
+
 ### Concise format (default)
 
 ```

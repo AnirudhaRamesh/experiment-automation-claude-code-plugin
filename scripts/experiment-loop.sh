@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# Allow nested claude -p calls when launched from within Claude Code
+unset CLAUDECODE 2>/dev/null || true
+
 # Experiment Loop — Iterative experiment runner with auto-diagnosis and retry.
 #
 # Creates a git worktree, implements an approved plan, launches on AIChor,
@@ -201,6 +204,22 @@ state_file: $STATE_FILE" 2>&1) || true
     else
         log "NOTIFY: WARNING: Could not capture Notion log page ID"
     fi
+}
+
+send_loop_start_notification() {
+    log "NOTIFY: Sending loop start Slack notification..."
+
+    (
+        claude -p \
+            --agent slack-notifier \
+            --dangerously-skip-permissions \
+            --max-budget-usd 1 \
+            "action: loop_start
+state_file: $STATE_FILE
+detail_level: detailed" > /dev/null 2>&1
+    ) &
+
+    log "NOTIFY: Sent loop start notification (background)"
 }
 
 send_iteration_notifications() {
@@ -422,6 +441,9 @@ PYEOF
 
     # Create Notion tracking page (foreground — we need the IDs)
     send_notion_plan
+
+    # Send Slack notification that the loop is starting
+    send_loop_start_notification
 fi
 
 # --- Implementation function (used by both fresh start and resume) ---

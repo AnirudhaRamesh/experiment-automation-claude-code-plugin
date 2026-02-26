@@ -92,6 +92,10 @@ Validates `manifest.yaml`, shows uncommitted changes, and summarizes what will r
 
 Compares `manifest.yaml` and config files between two branches/commits. Highlights changed hyperparameters, entrypoints, and resources.
 
+### `/team-lead` — Persistent multi-agent coordination
+
+Transforms the agent into a team lead for long-running, multi-task sessions. Creates a persistent agent team and coordinates specialized teammates — implementers, reviewers, researchers, Notion/Neptune/AIChor specialists — as the work demands. Enforces implement-review self-correction cycles for code quality. The team lead decides what agents to spawn, how to prompt them, and when to parallelize.
+
 ### `/setup` — First-time configuration
 
 Creates `.claude/experiment-automation.json` with your name, Slack channels, Notion database, and defaults. Run once per repo.

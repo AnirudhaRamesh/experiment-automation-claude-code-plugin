@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# Allow nested claude -p calls when launched from within Claude Code
+unset CLAUDECODE 2>/dev/null || true
+
 # AIChor Experiment Monitor
 # Polls for experiment completion, downloads logs, and triggers analysis.
 #
