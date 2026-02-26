@@ -40,13 +40,21 @@ If `experiment_name` is missing, fall back to the `loop_id`.
 
 ### Loop start format (for `loop_start` action)
 
+This notification is sent after the first AIChor launch completes monitoring, so both the Notion page and AIChor experiment links are available.
+
 ```
 :rocket: *New experiment loop started*
 *<experiment_name>*
 Loop: `<loop_id>` | Branch: `<branch>` | Max retries: <max_retries>
+AIChor: <aichor_url|View Run>
+Notion: <notion_url|Tracking Page>
 
 <first 2-3 lines of the plan, or a brief summary>
 ```
+
+**Notion link**: Construct from the `notion_page_id` field in the state file: `https://www.notion.so/<page_id_with_dashes_removed>`. If `notion_page_id` is missing or null, omit the Notion line.
+
+**AIChor link**: Construct from the first iteration's `experiment_id` (see "AIChor run link" section below). If missing, omit the AIChor line.
 
 ### Concise format (default)
 

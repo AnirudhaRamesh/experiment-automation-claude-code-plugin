@@ -442,8 +442,8 @@ PYEOF
     # Create Notion tracking page (foreground — we need the IDs)
     send_notion_plan
 
-    # Send Slack notification that the loop is starting
-    send_loop_start_notification
+    # Flag: send loop_start Slack notification after first launch (when both links are available)
+    SEND_START_NOTIFICATION=true
 fi
 
 # --- Implementation function (used by both fresh start and resume) ---
@@ -652,6 +652,12 @@ This is iteration $CURRENT_ITERATION of the experiment loop." 2>&1) || {
         fi
 
         log "MONITOR [iter $CURRENT_ITERATION]: Experiment $AICHOR_STATUS. Analysis at $ANALYSIS_PATH"
+
+        # Send deferred loop_start notification now that both Notion + AIChor links are available
+        if [[ "${SEND_START_NOTIFICATION:-}" == "true" ]]; then
+            send_loop_start_notification
+            SEND_START_NOTIFICATION=false
+        fi
     else
         # Resuming at fix — read status from state file
         AICHOR_STATUS=$(get_iteration_field "$CURRENT_ITERATION" "aichor_status")
