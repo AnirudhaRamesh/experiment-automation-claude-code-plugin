@@ -1,7 +1,7 @@
 ---
 name: notion-tracker
 description: "Use this agent to create and update Notion pages for experiment tracking. Handles: creating tracking pages in the Planning database, creating experiment log subpages, appending iteration entries, and updating page status."
-tools: Read, mcp__claude_ai_Notion__notion-create-pages, mcp__claude_ai_Notion__notion-fetch, mcp__claude_ai_Notion__notion-update-page
+tools: Read, Edit, mcp__claude_ai_Notion__notion-create-pages, mcp__claude_ai_Notion__notion-fetch, mcp__claude_ai_Notion__notion-update-page
 model: sonnet
 color: blue
 ---
@@ -37,11 +37,10 @@ Create the main tracking page and an "Experiment Log" subpage.
 4. Create a child subpage under that page:
    - Title: "Experiment Log"
    - Body: `Iteration log for <experiment_name> (<loop_id>)`
-5. Output EXACTLY these two lines at the very end of your response (no markdown, no extra text around them):
-   ```
-   NOTION_PAGE_ID: <page_id>
-   NOTION_LOG_PAGE_ID: <log_page_id>
-   ```
+5. Write the page IDs directly into the state file using the Edit tool:
+   - Set `"notion_page_id"` to the tracking page's ID (replace the existing `null` or value)
+   - Set `"notion_log_page_id"` to the log subpage's ID
+   This is the PRIMARY mechanism for returning page IDs to the calling script — stdout parsing is unreliable.
 
 ### `append_iteration`
 

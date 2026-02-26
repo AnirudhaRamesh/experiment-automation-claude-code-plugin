@@ -179,30 +179,28 @@ for it in d['iterations']:
 send_notion_plan() {
     log "NOTIFY: Creating Notion tracking page..."
 
-    local notion_output
-    notion_output=$(claude -p \
+    claude -p \
         --agent notion-tracker \
         --dangerously-skip-permissions \
         --max-budget-usd 2 \
         "action: create_tracking_page
-state_file: $STATE_FILE" 2>&1) || true
+state_file: $STATE_FILE" > /dev/null 2>&1 || true
 
-    # Extract page IDs from output
+    # The notion-tracker agent writes page IDs directly into state.json via Edit tool.
+    # Read them back to verify.
     local page_id log_page_id
-    page_id=$(echo "$notion_output" | grep -o 'NOTION_PAGE_ID: [^ ]*' | head -1 | sed 's/NOTION_PAGE_ID: //' || true)
-    log_page_id=$(echo "$notion_output" | grep -o 'NOTION_LOG_PAGE_ID: [^ ]*' | head -1 | sed 's/NOTION_LOG_PAGE_ID: //' || true)
+    page_id=$(read_state_field "notion_page_id")
+    log_page_id=$(read_state_field "notion_log_page_id")
 
-    if [[ -n "$page_id" ]]; then
-        update_state_field "notion_page_id" "\"$page_id\""
+    if [[ -n "$page_id" && "$page_id" != "None" ]]; then
         log "NOTIFY: Notion page created: $page_id"
     else
-        log "NOTIFY: WARNING: Could not capture Notion page ID"
+        log "NOTIFY: WARNING: Notion agent did not write page ID to state"
     fi
-    if [[ -n "$log_page_id" ]]; then
-        update_state_field "notion_log_page_id" "\"$log_page_id\""
+    if [[ -n "$log_page_id" && "$log_page_id" != "None" ]]; then
         log "NOTIFY: Notion log page created: $log_page_id"
     else
-        log "NOTIFY: WARNING: Could not capture Notion log page ID"
+        log "NOTIFY: WARNING: Notion agent did not write log page ID to state"
     fi
 }
 
@@ -614,6 +612,12 @@ This is iteration $CURRENT_ITERATION of the experiment loop." 2>&1) || {
         fi
 
         log "LAUNCH [iter $CURRENT_ITERATION]: Pushed commit $COMMIT_HASH ($EXPERIMENT_NAME)"
+
+        # Send deferred loop_start notification now that both Notion + commit are available
+        if [[ "${SEND_START_NOTIFICATION:-}" == "true" ]]; then
+            send_loop_start_notification
+            SEND_START_NOTIFICATION=false
+        fi
     fi
 
     # --- MONITOR (skip if resuming at fix phase — analysis already exists) ---
@@ -652,12 +656,6 @@ This is iteration $CURRENT_ITERATION of the experiment loop." 2>&1) || {
         fi
 
         log "MONITOR [iter $CURRENT_ITERATION]: Experiment $AICHOR_STATUS. Analysis at $ANALYSIS_PATH"
-
-        # Send deferred loop_start notification now that both Notion + AIChor links are available
-        if [[ "${SEND_START_NOTIFICATION:-}" == "true" ]]; then
-            send_loop_start_notification
-            SEND_START_NOTIFICATION=false
-        fi
     else
         # Resuming at fix — read status from state file
         AICHOR_STATUS=$(get_iteration_field "$CURRENT_ITERATION" "aichor_status")
